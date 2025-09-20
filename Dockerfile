@@ -26,6 +26,12 @@ RUN mkdir -p /usr/local/lib/docker/cli-plugins && \
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
 
+# Install Yarn (uses corepack in Node 16+)
+RUN corepack enable && corepack prepare yarn@stable --activate
+
+# Install pnpm (uses corepack in Node 16+)
+RUN corepack prepare pnpm@latest --activate
+
 # Install Go 1.21 for ARM64
 RUN wget https://go.dev/dl/go1.25.1.darwin-arm64.tar.gz && \
     tar -C /usr/local -xzf go1.25.1.darwin-arm64.tar.gz && \
