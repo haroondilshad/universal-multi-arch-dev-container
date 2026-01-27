@@ -75,17 +75,40 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # =============================================================================
-# Review Gate V2 MCP Server Installation
+# Docker-in-Docker Pre-installed Components
 # =============================================================================
-# Pre-install Review Gate V2 so it's ready immediately in any DevPod
+# Pre-install buildx and compose-switch to avoid download during container start
+
+# Install Docker Buildx (pre-download for faster startup)
+RUN mkdir -p /usr/local/lib/docker/cli-plugins && \
+    ARCH=$(dpkg --print-architecture) && \
+    BUILDX_VERSION="0.31.0" && \
+    curl -L "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${ARCH}" \
+        -o /usr/local/lib/docker/cli-plugins/docker-buildx && \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+
+# Install compose-switch for docker-compose v1 compatibility
+RUN ARCH=$(dpkg --print-architecture) && \
+    COMPOSE_SWITCH_VERSION="1.0.5" && \
+    curl -L "https://github.com/docker/compose-switch/releases/download/v${COMPOSE_SWITCH_VERSION}/docker-compose-linux-${ARCH}" \
+        -o /usr/local/bin/compose-switch && \
+    chmod +x /usr/local/bin/compose-switch
+
+# =============================================================================
+# Review Gate V2 Extension (Complete with VSIX contents)
+# =============================================================================
+# Pre-install complete Review Gate V2 extension so it's ready immediately
 
 # Create extension directory
 RUN mkdir -p /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-universal
 
+# Copy all extension files (extracted from VSIX)
+COPY extensions/review-gate-v2/ /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-universal/
+
 # Copy the MCP server script
 COPY extensions/review_gate_v2_mcp.py /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-universal/
 
-# Create virtual environment and install dependencies
+# Create virtual environment and install MCP dependencies
 RUN python3 -m venv /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-universal/venv && \
     /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-universal/venv/bin/pip install --upgrade pip && \
     /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-universal/venv/bin/pip install \
