@@ -27,4 +27,4 @@ jobs:
         context: .
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: yourdockerhubusername/ubuntu-devcontainer:latest
+        tags: haroondilshad/ubuntu-devcontainer:latest
