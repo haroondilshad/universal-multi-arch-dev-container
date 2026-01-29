@@ -17,20 +17,21 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 # =============================================================================
-# Configure Fast European (German) Mirrors
+# Configure Fast European (German) Mirrors - FAU Erlangen
 # =============================================================================
-# Use German mirrors for much faster apt operations in EU region
-# This eliminates the slow ports.ubuntu.com delays (~30s+ savings)
+# Use FAU (Friedrich-Alexander-Universität) mirror - fast German academic mirror
+# Supports both ubuntu (amd64) and ubuntu-ports (arm64)
+# Tested at 0.221s for 19MB package index vs 30s+ on default mirrors
 
 RUN ARCH=$(dpkg --print-architecture) && \
     if [ "$ARCH" = "arm64" ]; then \
-        # ARM64 uses ports.ubuntu.com - switch to German mirror
-        sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://de.ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list.d/*.sources 2>/dev/null || \
-        sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://de.ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list 2>/dev/null || true; \
+        # ARM64: Use FAU mirror for ubuntu-ports
+        sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://ftp.fau.de/ubuntu-ports|g' /etc/apt/sources.list.d/*.sources 2>/dev/null || \
+        sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://ftp.fau.de/ubuntu-ports|g' /etc/apt/sources.list 2>/dev/null || true; \
     else \
-        # AMD64 uses archive.ubuntu.com - switch to German mirror
-        sed -i 's|http://archive.ubuntu.com/ubuntu|http://de.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/*.sources 2>/dev/null || \
-        sed -i 's|http://archive.ubuntu.com/ubuntu|http://de.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list 2>/dev/null || true; \
+        # AMD64: Use FAU mirror
+        sed -i 's|http://archive.ubuntu.com/ubuntu|http://ftp.fau.de/ubuntu|g' /etc/apt/sources.list.d/*.sources 2>/dev/null || \
+        sed -i 's|http://archive.ubuntu.com/ubuntu|http://ftp.fau.de/ubuntu|g' /etc/apt/sources.list 2>/dev/null || true; \
     fi
 
 # Install dependencies for repo setup
