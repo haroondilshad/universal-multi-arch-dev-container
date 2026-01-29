@@ -51,13 +51,24 @@ echo "  ✓ toolhive-mcp-optimizer (http://mcp-optimizer:9900)"
 # Install Extensions from .devcontainer.json
 # =============================================================================
 
-# Find cursor-server binary dynamically
-CURSOR_SERVER=$(find "${HOME}/.cursor-server/bin" -name "cursor-server" -type f 2>/dev/null | head -1)
+# Wait for cursor-server to become available (max 30 seconds)
+CURSOR_SERVER=""
+for i in $(seq 1 30); do
+    CURSOR_SERVER=$(find "${HOME}/.cursor-server/bin" -name "cursor-server" -type f 2>/dev/null | head -1)
+    if [ -n "$CURSOR_SERVER" ]; then
+        break
+    fi
+    if [ "$i" -eq 1 ]; then
+        echo "⏳ Waiting for cursor-server..."
+    fi
+    sleep 1
+done
 
 if [ -z "$CURSOR_SERVER" ]; then
-    echo "⚠️  cursor-server not found, skipping extension installation"
+    echo "⚠️  cursor-server not found after 30s, skipping extension installation"
     exit 0
 fi
+echo "✓ cursor-server found"
 
 # Find .devcontainer.json in workspace
 DEVCONTAINER_JSON=""
