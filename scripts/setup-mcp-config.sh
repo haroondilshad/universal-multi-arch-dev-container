@@ -1,11 +1,13 @@
 #!/bin/bash
 # =============================================================================
-# Setup MCP Configuration for DevPod Container
+# Setup MCP Configuration & Extensions for DevPod Container
 # =============================================================================
 # 
 # Creates the Cursor MCP configuration with:
 # - Review Gate V2 (always enabled - local Python from pre-installed venv)
 # - ToolHive MCP Optimizer (HTTP via Docker network)
+#
+# Also installs extensions from .devcontainer.json in the background.
 #
 # Review Gate V2 is pre-installed at:
 #   /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-universal/
@@ -44,3 +46,55 @@ EOF
 echo "MCP config created: ${MCP_CONFIG}"
 echo "  ✓ review-gate-v2 (local)"
 echo "  ✓ toolhive-mcp-optimizer (http://mcp-optimizer:9900)"
+
+# =============================================================================
+# Install Extensions from .devcontainer.json
+# =============================================================================
+
+# Find cursor-server binary dynamically
+CURSOR_SERVER=$(find "${HOME}/.cursor-server/bin" -name "cursor-server" -type f 2>/dev/null | head -1)
+
+if [ -z "$CURSOR_SERVER" ]; then
+    echo "⚠️  cursor-server not found, skipping extension installation"
+    exit 0
+fi
+
+# Find .devcontainer.json in workspace
+DEVCONTAINER_JSON=""
+for path in "/workspaces/"*"/.devcontainer.json" "/workspace/.devcontainer.json"; do
+    if [ -f "$path" ]; then
+        DEVCONTAINER_JSON="$path"
+        break
+    fi
+done
+
+if [ -z "$DEVCONTAINER_JSON" ] || [ ! -f "$DEVCONTAINER_JSON" ]; then
+    echo "⚠️  .devcontainer.json not found, skipping extension installation"
+    exit 0
+fi
+
+# Check if jq is available
+if ! command -v jq &> /dev/null; then
+    echo "⚠️  jq not available, skipping extension installation"
+    exit 0
+fi
+
+# Extract extensions from .devcontainer.json (strip comments first)
+EXTENSIONS=$(grep -v '^\s*//' "$DEVCONTAINER_JSON" | jq -r '.customizations.vscode.extensions[]? // empty' 2>/dev/null)
+
+if [ -z "$EXTENSIONS" ]; then
+    echo "ℹ️  No extensions found in .devcontainer.json"
+    exit 0
+fi
+
+# Install extensions in background
+echo "Installing extensions from .devcontainer.json..."
+(
+    for ext in $EXTENSIONS; do
+        echo "  Installing: $ext"
+        "$CURSOR_SERVER" --install-extension "$ext" --force 2>/dev/null || true
+    done
+    echo "  ✓ Extension installation complete"
+) &
+
+echo "  → Extensions installing in background"
