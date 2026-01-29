@@ -169,10 +169,11 @@ RUN python3 -m venv /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-
     chown -R vscode:vscode /home/vscode/.cursor-server
 
 # =============================================================================
-# MCP Configuration Setup Script
+# MCP Configuration & Extension Installation Scripts
 # =============================================================================
 COPY scripts/setup-mcp-config.sh /usr/local/bin/setup-mcp-config
-RUN chmod +x /usr/local/bin/setup-mcp-config
+COPY scripts/install-extensions-background.sh /usr/local/bin/install-extensions-background
+RUN chmod +x /usr/local/bin/setup-mcp-config /usr/local/bin/install-extensions-background
 
 # =============================================================================
 # Final Configuration
