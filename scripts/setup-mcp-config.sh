@@ -34,7 +34,7 @@ cat > "${MCP_CONFIG}" << 'EOF'
       }
     },
     "toolhive-mcp-optimizer": {
-      "url": "http://mcp-optimizer:9900/mcp",
+      "url": "http://thv-serve:9900/mcp",
       "type": "http"
     }
   }
@@ -43,4 +43,4 @@ EOF
 
 echo "MCP config created: ${MCP_CONFIG}"
 echo "  ✓ review-gate-v2 (local)"
-echo "  ✓ toolhive-mcp-optimizer (http://mcp-optimizer:9900)"
+echo "  ✓ toolhive-mcp-optimizer (http://thv-serve:9900)"
