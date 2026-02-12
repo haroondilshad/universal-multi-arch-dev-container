@@ -133,7 +133,7 @@ dockerd_start="$(cat << 'INNEREOF'
     fi
     DEFAULT_ADDRESS_POOL=""
     [ -n "$DOCKER_DEFAULT_ADDRESS_POOL" ] && DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
-    ( dockerd $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd --storage-driver=vfs $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
