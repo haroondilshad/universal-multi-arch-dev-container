@@ -14,6 +14,7 @@
 # - Use --no-install-recommends and --no-cache-dir
 # - Removed redundant Docker tools (use moby packages only)
 # - USE_EU_MIRRORS build arg for faster EU builds
+# - fuse-overlayfs storage driver for DinD (proper CoW vs slow vfs full-copy)
 #
 # Build:
 #   docker buildx build --platform linux/amd64,linux/arm64 -t haroondilshad/ubuntu-devcontainer:latest --push .
@@ -53,6 +54,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     iptables \
     wget \
     jq \
+    # Docker-in-Docker: fuse-overlayfs gives copy-on-write performance
+    # inside nested containers (kernel can't nest overlay-on-overlay)
+    fuse-overlayfs \
     # Python
     python3 \
     python3-pip \
@@ -133,7 +137,7 @@ dockerd_start="$(cat << 'INNEREOF'
     fi
     DEFAULT_ADDRESS_POOL=""
     [ -n "$DOCKER_DEFAULT_ADDRESS_POOL" ] && DEFAULT_ADDRESS_POOL="--default-address-pool $DOCKER_DEFAULT_ADDRESS_POOL"
-    ( dockerd --storage-driver=vfs $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
+    ( dockerd --storage-driver=fuse-overlayfs $CUSTOMDNS $DEFAULT_ADDRESS_POOL > /tmp/dockerd.log 2>&1 ) &
 INNEREOF
 )"
 
