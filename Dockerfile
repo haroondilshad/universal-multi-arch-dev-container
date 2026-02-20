@@ -110,6 +110,12 @@ RUN ARCH=$(dpkg --print-architecture) && \
     ln -s /usr/local/go/bin/go /usr/bin/go
 
 # =============================================================================
+# Install uv (Python package manager & tool runner for chroma-mcp etc.)
+# =============================================================================
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh && \
+    uv --version
+
+# =============================================================================
 # Docker-in-Docker Startup Script
 # =============================================================================
 COPY <<'DOCKER_INIT' /usr/local/share/docker-init.sh
@@ -177,19 +183,21 @@ RUN python3 -m venv /home/vscode/.cursor-server/extensions/review-gate-v2-2.7.3-
 # =============================================================================
 COPY scripts/setup-mcp-config.sh /usr/local/bin/setup-mcp-config
 COPY scripts/install-extensions-background.sh /usr/local/bin/install-extensions-background
-RUN chmod +x /usr/local/bin/setup-mcp-config /usr/local/bin/install-extensions-background
+COPY scripts/setup-claude-mem.sh /usr/local/bin/setup-claude-mem
+RUN chmod +x /usr/local/bin/setup-mcp-config /usr/local/bin/install-extensions-background /usr/local/bin/setup-claude-mem
 
 # =============================================================================
 # Final Configuration
 # =============================================================================
 RUN mkdir -p /home/vscode/.local/share/pnpm \
+             /home/vscode/.local/bin \
              /home/vscode/.bun/install/cache \
              /home/vscode/.cursor && \
     chown -R vscode:vscode /home/vscode
 
 # Set environment variables
 ENV BUN_INSTALL=/home/vscode/.bun \
-    PATH=/home/vscode/.bun/bin:$PATH \
+    PATH=/home/vscode/.local/bin:/home/vscode/.bun/bin:$PATH \
     DOCKER_BUILDKIT=1
 
 CMD ["sleep", "infinity"]
